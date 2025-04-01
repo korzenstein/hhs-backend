@@ -6,13 +6,28 @@ const router = express.Router();
 // GET /nurses
 router.get("/", async (_req: Request, res: Response) => {
   try {
-    const result = await pool.query('SELECT * FROM nurse ORDER BY lastName ASC');
+    const result = await pool.query(`
+      SELECT
+        nurse.id,
+        nurse.first_name,
+        nurse.last_name,
+        nurse.email,
+        nurse.employee_id,
+        nurse.ward_id,
+        ward.name AS ward_name,
+        ward.color AS ward_color
+      FROM nurse
+      LEFT JOIN ward ON nurse.ward_id = ward.id
+      ORDER BY nurse.last_name ASC
+    `);
+
     res.json(result.rows);
   } catch (err) {
     console.error("Error fetching nurses:", err);
     res.status(500).json({ error: "Failed to fetch nurses" });
   }
 });
+
 
 // POST /nurses
 router.post("/", async (req: Request, res: Response) => {
