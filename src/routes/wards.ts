@@ -6,7 +6,7 @@ const router = express.Router();
 // GET /wards
 router.get("/", async (_req: Request, res: Response) => {
   try {
-    const result = await pool.query('SELECT * FROM "Ward" ORDER BY name ASC');
+    const result = await pool.query('SELECT * FROM ward ORDER BY name ASC');
     res.json(result.rows);
   } catch (err) {
     console.error("Error fetching wards:", err);

@@ -1,4 +1,4 @@
-INSERT INTO "Ward" (name, color)
+INSERT INTO ward (name, color)
 VALUES
   ('Cardiology', 'Red'),
   ('Pediatrics', 'Blue'),
