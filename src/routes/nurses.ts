@@ -5,10 +5,14 @@ const router = express.Router();
 
 // GET /nurses
 router.get("/", async (req: Request, res: Response) => {
-  const { query } = req.query; 
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const search = (req.query.search as string) || "";
+
+  const offset = (page - 1) * limit;
 
   try {
-    let baseQuery = `
+    const baseQuery = `
       SELECT
         nurse.id,
         nurse.first_name,
@@ -20,24 +24,35 @@ router.get("/", async (req: Request, res: Response) => {
         ward.color AS ward_color
       FROM nurse
       LEFT JOIN ward ON nurse.ward_id = ward.id
+      WHERE nurse.first_name ILIKE $1 OR nurse.last_name ILIKE $1 OR ward.name ILIKE $1
+      ORDER BY nurse.last_name ASC
+      LIMIT $2 OFFSET $3
     `;
 
-    const queryParams: any[] = [];
+    const countQuery = `
+      SELECT COUNT(*) AS total
+      FROM nurse
+      LEFT JOIN ward ON nurse.ward_id = ward.id
+      WHERE nurse.first_name ILIKE $1 OR nurse.last_name ILIKE $1 OR ward.name ILIKE $1
+    `;
 
-    if (query) {
-      baseQuery += ` WHERE nurse.first_name ILIKE $1 OR nurse.last_name ILIKE $1 OR ward.name ILIKE $1`;
-      queryParams.push(`%${query}%`);
-    }
+    const [dataResult, countResult] = await Promise.all([
+      pool.query(baseQuery, [`%${search}%`, limit, offset]),
+      pool.query(countQuery, [`%${search}%`])
+    ]);
 
-    baseQuery += ` ORDER BY nurse.last_name ASC`;
-
-    const result = await pool.query(baseQuery, queryParams);
-    res.json(result.rows);
+    res.json({
+      nurses: dataResult.rows,
+      total: parseInt(countResult.rows[0].total),
+      page,
+      limit
+    });
   } catch (err) {
-    console.error("Error fetching nurses:", err);
+    console.error("Error fetching nurses with pagination:", err);
     res.status(500).json({ error: "Failed to fetch nurses" });
   }
 });
+
 
 
 // POST /nurses
