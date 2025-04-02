@@ -4,9 +4,11 @@ import { pool } from "../db";
 const router = express.Router();
 
 // GET /nurses
-router.get("/", async (_req: Request, res: Response) => {
+router.get("/", async (req: Request, res: Response) => {
+  const { query } = req.query; 
+
   try {
-    const result = await pool.query(`
+    let baseQuery = `
       SELECT
         nurse.id,
         nurse.first_name,
@@ -18,9 +20,18 @@ router.get("/", async (_req: Request, res: Response) => {
         ward.color AS ward_color
       FROM nurse
       LEFT JOIN ward ON nurse.ward_id = ward.id
-      ORDER BY nurse.last_name ASC
-    `);
+    `;
 
+    const queryParams: any[] = [];
+
+    if (query) {
+      baseQuery += ` WHERE nurse.first_name ILIKE $1 OR nurse.last_name ILIKE $1 OR ward.name ILIKE $1`;
+      queryParams.push(`%${query}%`);
+    }
+
+    baseQuery += ` ORDER BY nurse.last_name ASC`;
+
+    const result = await pool.query(baseQuery, queryParams);
     res.json(result.rows);
   } catch (err) {
     console.error("Error fetching nurses:", err);
