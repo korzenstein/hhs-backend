@@ -76,4 +76,40 @@ router.delete("/:id", async (req: Request, res: Response) => {
 });
 
 
+// PATCH /nurses/:id
+router.patch("/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { first_name, last_name, email, ward_id } = req.body;
+
+  if (!first_name || !last_name || !email || !ward_id) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  try {
+    const result = await pool.query(
+      `
+      UPDATE nurse
+      SET first_name = $1,
+          last_name = $2,
+          email = $3,
+          ward_id = $4
+      WHERE id = $5
+      RETURNING *
+      `,
+      [first_name, last_name, email, ward_id, id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Nurse not found" });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (err: any) {
+    console.error("Failed to update nurse:", err.message);
+    res.status(500).json({ error: "Failed to update nurse" });
+  }
+});
+
+
+
 export default router;
