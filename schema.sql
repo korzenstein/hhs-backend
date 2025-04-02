@@ -1,19 +1,19 @@
--- enum for Ward colors
-CREATE TYPE "WardColor" AS ENUM ('Red', 'Green', 'Blue', 'Yellow');
+-- Enum for ward colors
+CREATE TYPE ward_color AS ENUM ('Red', 'Green', 'Blue', 'Yellow');
 
 -- Wards table
-CREATE TABLE IF NOT EXISTS "Ward" (
+CREATE TABLE IF NOT EXISTS ward (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL UNIQUE,
-  color "WardColor" NOT NULL
+  color ward_color NOT NULL
 );
 
 -- Nurses table
-CREATE TABLE IF NOT EXISTS "Nurse" (
+CREATE TABLE IF NOT EXISTS nurse (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  firstName TEXT NOT NULL,
-  lastName TEXT NOT NULL,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
-  employeeId SERIAL UNIQUE,
-  wardId UUID REFERENCES "Ward"(id) ON DELETE SET NULL
+  employee_id SERIAL UNIQUE,
+  ward_id UUID REFERENCES ward(id) ON DELETE SET NULL
 );
