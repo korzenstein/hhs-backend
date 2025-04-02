@@ -54,5 +54,26 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
+// DELETE /nurses/:id
+router.delete("/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `DELETE FROM nurse WHERE id = $1 RETURNING *`,
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Nurse not found" });
+    }
+
+    res.status(200).json({ message: "Nurse deleted", nurse: result.rows[0] });
+  } catch (err) {
+    console.error("Error deleting nurse:", err);
+    res.status(500).json({ error: "Failed to delete nurse" });
+  }
+});
+
 
 export default router;
